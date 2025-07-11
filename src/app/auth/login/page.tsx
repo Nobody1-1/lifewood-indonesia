@@ -22,7 +22,9 @@ export default function LoginPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Login gagal");
       // Simpan token ke localStorage/sessionStorage sesuai kebutuhan
-      localStorage.setItem("token", data.token);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("token", data.token);
+      }
       
       // Cek role user untuk menentukan redirect
       try {

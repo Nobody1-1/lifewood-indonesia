@@ -18,21 +18,25 @@ export default function Navbar() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        setUserData(payload);
-        setIsLoggedIn(true);
-      } catch {
-        localStorage.removeItem("token");
-        setIsLoggedIn(false);
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split(".")[1]));
+          setUserData(payload);
+          setIsLoggedIn(true);
+        } catch {
+          localStorage.removeItem("token");
+          setIsLoggedIn(false);
+        }
       }
     }
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("token");
+    }
     setIsLoggedIn(false);
     setUserData(null);
     router.push("/");

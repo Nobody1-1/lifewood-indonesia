@@ -1,5 +1,4 @@
-"use client";
-import React, { useEffect, useState } from "react";
+import React from "react";
 
 interface Store {
   _id: string;
@@ -14,29 +13,23 @@ interface Store {
   };
 }
 
-export default function StoreList() {
-  const [stores, setStores] = useState<Store[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+async function getStores(): Promise<Store[]> {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/stores`, {
+      cache: 'no-store'
+    });
+    if (!response.ok) {
+      throw new Error('Failed to fetch stores');
+    }
+    return response.json();
+  } catch (error) {
+    console.error('Error fetching stores:', error);
+    return [];
+  }
+}
 
-  useEffect(() => {
-    const fetchStores = async () => {
-      try {
-        const response = await fetch("/api/stores");
-        if (!response.ok) {
-          throw new Error("Failed to fetch stores");
-        }
-        const data = await response.json();
-        setStores(data);
-      } catch (err) {
-        setError("Gagal mengambil data toko");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStores();
-  }, []);
+export default async function StoreList() {
+  const stores = await getStores();
 
   return (
     <>
@@ -60,10 +53,8 @@ export default function StoreList() {
       <section className="py-16 bg-white min-h-[60vh]">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-10 text-center">Store Locations</h2>
-          {loading ? (
-            <div className="text-center text-lg text-gray-500">Loading...</div>
-          ) : error ? (
-            <div className="text-center text-red-500">{error}</div>
+          {stores.length === 0 ? (
+            <div className="text-center text-lg text-gray-500">No stores available</div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
               {stores.map(store => (
@@ -74,9 +65,6 @@ export default function StoreList() {
                       src={store.image || "/images/store-placeholder.jpg"} 
                       alt={store.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      onError={(e) => {
-                        e.currentTarget.src = "/images/store-placeholder.jpg";
-                      }}
                     />
                   </div>
                   <div className="p-6 flex-1 flex flex-col">
