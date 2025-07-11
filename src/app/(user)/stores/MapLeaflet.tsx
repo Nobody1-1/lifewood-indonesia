@@ -2,7 +2,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import "leaflet/dist/leaflet.css"; // CSS ini aman diimpor di mana saja
 
 // Definisi interface Store Anda
 export interface Store {
