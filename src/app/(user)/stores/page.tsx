@@ -1,20 +1,42 @@
 "use client";
 import React, { useEffect, useState } from "react";
 
+interface Store {
+  _id: string;
+  name: string;
+  address: string;
+  city: string;
+  phone: string;
+  image?: string;
+  location?: {
+    lat: number;
+    lng: number;
+  };
+}
+
 export default function StoreList() {
-  const [stores, setStores] = useState<any[]>([]);
+  const [stores, setStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("/api/stores")
-      .then(res => res.json())
-      .then(data => setStores(data))
-      .catch(() => setError("Gagal mengambil data toko"))
-      .finally(() => setLoading(false));
+    const fetchStores = async () => {
+      try {
+        const response = await fetch("/api/stores");
+        if (!response.ok) {
+          throw new Error("Failed to fetch stores");
+        }
+        const data = await response.json();
+        setStores(data);
+      } catch (err) {
+        setError("Gagal mengambil data toko");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStores();
   }, []);
-
-
 
   return (
     <>
