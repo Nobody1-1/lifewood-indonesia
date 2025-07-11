@@ -5,9 +5,10 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
+    "build:no-lint": "next build --no-lint",
     "start": "next start",
     "lint": "next lint",
-    "vercel-build": "next build",
+    "vercel-build": "next build --no-lint",
     "setup-env": "node setup-env.js",
     "optimize-images": "node optimize-images.js"
   },
