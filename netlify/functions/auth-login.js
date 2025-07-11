@@ -2,13 +2,17 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// MongoDB connection
+// MongoDB connection dengan timeout
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI);
+    await mongoose.connect(process.env.MONGODB_URI, {
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    });
     console.log('MongoDB connected');
   } catch (error) {
     console.error('MongoDB connection error:', error);
+    throw new Error('Database connection failed');
   }
 };
 
@@ -24,11 +28,15 @@ const userSchema = new mongoose.Schema({
 const User = mongoose.models.User || mongoose.model('User', userSchema);
 
 exports.handler = async (event, context) => {
+  // Set timeout untuk function
+  context.callbackWaitsForEmptyEventLoop = false;
+  
   // Enable CORS
   const headers = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS'
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Content-Type': 'application/json'
   };
 
   // Handle preflight requests
@@ -49,10 +57,41 @@ exports.handler = async (event, context) => {
   }
 
   try {
+    // Validasi environment variables
+    if (!process.env.MONGODB_URI) {
+      console.error('MONGODB_URI not found');
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({ error: 'Database configuration error' })
+      };
+    }
+
+    if (!process.env.JWT_SECRET) {
+      console.error('JWT_SECRET not found');
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({ error: 'JWT configuration error' })
+      };
+    }
+
     // Connect to database
     await connectDB();
 
-    const { email, password } = JSON.parse(event.body);
+    // Parse request body
+    let body;
+    try {
+      body = JSON.parse(event.body);
+    } catch (error) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ error: 'Invalid JSON in request body' })
+      };
+    }
+
+    const { email, password } = body;
 
     // Validate input
     if (!email || !password) {
@@ -110,7 +149,15 @@ exports.handler = async (event, context) => {
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: 'Internal server error' })
+      body: JSON.stringify({ 
+        error: 'Internal server error',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      })
     };
+  } finally {
+    // Close database connection
+    if (mongoose.connection.readyState === 1) {
+      await mongoose.connection.close();
+    }
   }
 }; 

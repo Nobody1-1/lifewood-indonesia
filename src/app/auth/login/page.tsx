@@ -15,24 +15,40 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
+    
     try {
       // Use Netlify Functions endpoint
       const apiUrl = process.env.NODE_ENV === 'production' 
         ? '/.netlify/functions/auth-login'
         : '/api/auth/login';
         
+      console.log('Attempting login to:', apiUrl);
+      
       const res = await fetch(apiUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
         body: JSON.stringify({ email, password }),
       });
       
+      console.log('Response status:', res.status);
+      
       if (!res.ok) {
-        const errorData = await res.json().catch(() => ({ error: 'Network error' }));
-        throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
+        let errorMessage = 'Network error';
+        try {
+          const errorData = await res.json();
+          errorMessage = errorData.error || `HTTP error! status: ${res.status}`;
+        } catch (parseError) {
+          console.error('Failed to parse error response:', parseError);
+          errorMessage = `Server error (${res.status})`;
+        }
+        throw new Error(errorMessage);
       }
       
       const data = await res.json();
+      console.log('Login successful:', data);
       
       // Simpan token ke localStorage/sessionStorage sesuai kebutuhan
       if (typeof window !== "undefined") {
@@ -53,7 +69,7 @@ export default function LoginPage() {
       }
     } catch (err: any) {
       console.error('Login error:', err);
-      setError(err.message || 'Login failed');
+      setError(err.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -94,7 +110,16 @@ export default function LoginPage() {
             <div className="p-8">
               {error && (
                 <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-center">
-                  {error}
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="font-semibold">Login Failed</span>
+                  </div>
+                  <p className="text-sm">{error}</p>
+                  <p className="text-xs mt-2 text-red-500">
+                    Please check your credentials and try again.
+                  </p>
                 </div>
               )}
 
@@ -113,6 +138,7 @@ export default function LoginPage() {
                     autoFocus 
                     autoComplete="username"
                     placeholder="Enter your email"
+                    disabled={loading}
                   />
                 </div>
 
@@ -134,6 +160,7 @@ export default function LoginPage() {
                     required 
                     autoComplete="current-password"
                     placeholder="Enter your password"
+                    disabled={loading}
                   />
                 </div>
 
@@ -142,6 +169,7 @@ export default function LoginPage() {
                     type="checkbox" 
                     id="remember" 
                     className="h-4 w-4 text-amber-600 focus:ring-amber-500 border-gray-300 rounded"
+                    disabled={loading}
                   />
                   <label htmlFor="remember" className="ml-2 block text-sm text-gray-700">
                     Remember me
