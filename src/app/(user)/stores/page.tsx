@@ -1,35 +1,5 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import dynamic from "next/dynamic";
-
-const MapContainer = dynamic(
-  () => import("react-leaflet").then(mod => mod.MapContainer),
-  { ssr: false }
-);
-const TileLayer = dynamic(
-  () => import("react-leaflet").then(mod => mod.TileLayer),
-  { ssr: false }
-);
-const Marker = dynamic(
-  () => import("react-leaflet").then(mod => mod.Marker),
-  { ssr: false }
-);
-const Popup = dynamic(
-  () => import("react-leaflet").then(mod => mod.Popup),
-  { ssr: false }
-);
-
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
-
-// Fix default icon issue in leaflet with Next.js
-if (typeof window !== "undefined" && L && L.Icon && L.Icon.Default) {
-  L.Icon.Default.mergeOptions({
-    iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-    iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  });
-}
 
 export default function StoreList() {
   const [stores, setStores] = useState<any[]>([]);
@@ -44,18 +14,7 @@ export default function StoreList() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Filter stores with valid lat/lng
-  const storesWithLocation = stores.filter(
-    s => s.location && typeof s.location.lat === "number" && typeof s.location.lng === "number"
-  );
 
-  // Center map: average of all locations, fallback ke Indonesia
-  let mapCenter: [number, number] = [-2.5489, 118.0149]; // Indonesia
-  if (storesWithLocation.length > 0) {
-    const avgLat = storesWithLocation.reduce((sum, s) => sum + s.location.lat, 0) / storesWithLocation.length;
-    const avgLng = storesWithLocation.reduce((sum, s) => sum + s.location.lng, 0) / storesWithLocation.length;
-    mapCenter = [avgLat, avgLng];
-  }
 
   return (
     <>
@@ -74,36 +33,6 @@ export default function StoreList() {
           </p>
         </div>
       </section>
-
-      {/* Map Section */}
-      {storesWithLocation.length > 0 && (
-        <section className="w-full flex justify-center bg-white py-8">
-          <div className="w-full max-w-4xl h-[350px] rounded-2xl overflow-hidden shadow-lg border border-amber-100">
-            <MapContainer center={mapCenter} zoom={5} scrollWheelZoom={true} style={{ height: "100%", width: "100%", zIndex: 0 }}>
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              {storesWithLocation.map(store => (
-                <Marker key={store._id} position={[store.location.lat, store.location.lng]}>
-                  <Popup>
-                    <div className="font-bold text-amber-700 mb-1">{store.name}</div>
-                    <div className="text-gray-700 text-sm mb-1">{store.address}</div>
-                    <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${store.location.lat},${store.location.lng}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-amber-600 underline text-sm"
-                    >
-                      Open in Google Maps
-                    </a>
-                  </Popup>
-                </Marker>
-              ))}
-            </MapContainer>
-          </div>
-        </section>
-      )}
 
       {/* Store Grid Section */}
       <section className="py-16 bg-white min-h-[60vh]">
