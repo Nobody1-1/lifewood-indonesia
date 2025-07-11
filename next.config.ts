@@ -2,8 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  trailingSlash: true, // Untuk Netlify compatibility
   images: {
-    domains: ['https://cunbadlwzavpnzlnjmlj.supabase.co'],
+    unoptimized: true, // Untuk static export
+    domains: ['https://cunbadlzavpnzlnjmlj.supabase.co'],
     remotePatterns: [
       {
         protocol: 'https',

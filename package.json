@@ -9,8 +9,10 @@
     "start": "next start",
     "lint": "next lint",
     "vercel-build": "next build --no-lint",
+    "netlify-build": "next build",
     "setup-env": "node setup-env.js",
-    "optimize-images": "node optimize-images.js"
+    "optimize-images": "node optimize-images.js",
+    "deploy-netlify": "node deploy-netlify.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.5",
