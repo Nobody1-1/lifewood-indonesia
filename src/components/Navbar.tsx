@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const navLinks = [
   { href: "/brand", label: "Brand" },
@@ -44,7 +45,7 @@ export default function Navbar({ user }: { user?: { name: string; email: string 
           {/* Logo */}
           <div className="flex items-center gap-3">
             <Link href="/brand" className="shrink-0 flex items-center gap-3 group">
-              <img src="/images/lifewood.png" alt="Logo" className="h-10 w-auto group-hover:scale-110 transition-transform duration-300" />
+              <Image src="/images/lifewood.png" alt="Logo" width={40} height={40} className="h-10 w-auto group-hover:scale-110 transition-transform duration-300" />
               <span className="text-xl font-bold text-gray-900 group-hover:text-amber-600 transition-colors">Life Wood Indonesia</span>
             </Link>
           </div>
