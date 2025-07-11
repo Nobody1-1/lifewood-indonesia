@@ -12,7 +12,9 @@
     "netlify-build": "next build",
     "setup-env": "node setup-env.js",
     "optimize-images": "node optimize-images.js",
-    "deploy-netlify": "node deploy-netlify.js"
+    "deploy-netlify": "node deploy-netlify.js",
+    "analyze": "ANALYZE=true npm run build",
+    "build:analyze": "cross-env ANALYZE=true npm run build"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.5",
@@ -31,11 +33,13 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/leaflet": "^1.9.8",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cross-env": "^7.0.3",
     "eslint": "^9",
     "eslint-config-next": "15.3.5",
     "tailwindcss": "^4",

@@ -1,6 +1,7 @@
 [build]
   command = "npm install --legacy-peer-deps && npm run build"
   publish = ".next"
+  functions = "netlify/functions"
 
 [build.environment]
   NODE_VERSION = "18"
@@ -14,7 +15,7 @@
 
 [[redirects]]
   from = "/api/*"
-  to = "/api/:splat"
+  to = "/.netlify/functions/:splat"
   status = 200
 
 # Handle client-side routing for Next.js

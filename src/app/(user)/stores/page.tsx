@@ -18,12 +18,21 @@ interface Store {
 
 async function getStores(): Promise<Store[]> {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/stores`, {
+    // Use Netlify Functions endpoint in production
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    const apiPath = process.env.NODE_ENV === 'production' 
+      ? '/.netlify/functions/stores'
+      : '/api/stores';
+      
+    const response = await fetch(`${baseUrl}${apiPath}`, {
       cache: 'no-store'
     });
+    
     if (!response.ok) {
-      throw new Error('Failed to fetch stores');
+      console.error('Stores API error:', response.status, response.statusText);
+      throw new Error(`Failed to fetch stores: ${response.status}`);
     }
+    
     return response.json();
   } catch (error) {
     console.error('Error fetching stores:', error);

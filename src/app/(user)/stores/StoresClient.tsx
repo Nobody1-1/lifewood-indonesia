@@ -2,7 +2,18 @@
 import React from "react";
 import dynamic from "next/dynamic";
 
-const MapLeaflet = dynamic(() => import("./MapLeaflet"), { ssr: false });
+// Optimasi dynamic import dengan loading dan error handling
+const MapLeaflet = dynamic(() => import("./MapLeaflet"), { 
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[400px] rounded-xl overflow-hidden z-0 bg-gradient-to-br from-amber-50 to-orange-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto mb-4"></div>
+        <p className="text-gray-600">Loading map...</p>
+      </div>
+    </div>
+  ),
+});
 
 interface Store {
   _id: string;
@@ -59,6 +70,7 @@ export default function StoresClient({ stores }: { stores: Store[] }) {
                       src={store.image || "/images/store-placeholder.jpg"} 
                       alt={store.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
                     />
                   </div>
                   <div className="p-6 flex-1 flex flex-col">
