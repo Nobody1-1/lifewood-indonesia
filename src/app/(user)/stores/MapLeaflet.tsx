@@ -34,40 +34,45 @@ export default function MapLeaflet({ stores }: { stores: Store[] }) {
 
     // Impor react-leaflet dan leaflet secara dinamis di dalam useEffect
     // Ini memastikan kode mereka hanya dieksekusi di browser
-    import("react-leaflet").then((reactLeaflet) => {
-      import("leaflet").then((leafletModule) => {
-        const L = leafletModule.default; // Leaflet biasanya diekspor sebagai default
+    Promise.all([
+      import("react-leaflet"),
+      import("leaflet")
+    ]).then(([reactLeaflet, leafletModule]) => {
+      const L = leafletModule.default; // Leaflet biasanya diekspor sebagai default
 
-        // --- PENTING: Penanganan Icon Leaflet untuk SSR ---
-        // Ini adalah solusi umum untuk mengatasi masalah icon Leaflet di Next.js
-        // yang mencoba mengakses window/document saat inisialisasi.
-        // Pastikan ini hanya berjalan di browser.
-        if (typeof window !== "undefined") {
-          // Hapus metode _getIconUrl dari prototype default Icon Leaflet
-          // Ini mencegah Leaflet mencoba menemukan ikon secara otomatis di lingkungan server.
-          const defaultIcon = L.Icon.Default.prototype as any;
-          if (defaultIcon._getIconUrl) {
-            delete defaultIcon._getIconUrl;
-          }
-
-          // Gabungkan opsi default untuk ikon, menunjuk ke URL yang dapat diakses publik
-          L.Icon.Default.mergeOptions({
-            iconRetinaUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon-2x.png",
-            iconUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png",
-            shadowUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png",
-          });
+      // --- PENTING: Penanganan Icon Leaflet untuk SSR ---
+      // Ini adalah solusi umum untuk mengatasi masalah icon Leaflet di Next.js
+      // yang mencoba mengakses window/document saat inisialisasi.
+      // Pastikan ini hanya berjalan di browser.
+      if (typeof window !== "undefined") {
+        // Hapus metode _getIconUrl dari prototype default Icon Leaflet
+        // Ini mencegah Leaflet mencoba menemukan ikon secara otomatis di lingkungan server.
+        const defaultIcon = L.Icon.Default.prototype as any;
+        if (defaultIcon._getIconUrl) {
+          delete defaultIcon._getIconUrl;
         }
-        // --- Akhir Penanganan Icon Leaflet ---
 
-        // Simpan komponen dan objek L ke state
-        setLeafletComponents({
-          MapContainer: reactLeaflet.MapContainer,
-          TileLayer: reactLeaflet.TileLayer,
-          Marker: reactLeaflet.Marker,
-          Popup: reactLeaflet.Popup,
-          L: L, // Simpan objek L untuk digunakan nanti (misalnya untuk membuat ikon kustom)
+        // Gabungkan opsi default untuk ikon, menunjuk ke URL yang dapat diakses publik
+        L.Icon.Default.mergeOptions({
+          iconRetinaUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon-2x.png",
+          iconUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png",
+          shadowUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png",
         });
+      }
+      // --- Akhir Penanganan Icon Leaflet ---
+
+      // Simpan komponen dan objek L ke state
+      setLeafletComponents({
+        MapContainer: reactLeaflet.MapContainer,
+        TileLayer: reactLeaflet.TileLayer,
+        Marker: reactLeaflet.Marker,
+        Popup: reactLeaflet.Popup,
+        L: L, // Simpan objek L untuk digunakan nanti (misalnya untuk membuat ikon kustom)
       });
+    }).catch((error) => {
+      console.error('Error loading Leaflet:', error);
+      // Fallback: tampilkan pesan error yang user-friendly
+      setLeafletComponents(null);
     });
 
     // Fix leaflet map size bug in Next.js - ini sudah benar
@@ -84,7 +89,9 @@ export default function MapLeaflet({ stores }: { stores: Store[] }) {
   if (!isClient || !LeafletComponents) {
     return (
       <div className="w-full h-[400px] rounded-xl overflow-hidden z-0 bg-gray-100 flex items-center justify-center">
-        <div className="text-gray-500">Loading map...</div>
+        <div className="text-gray-500">
+          {!isClient ? "Loading map..." : "Loading map components..."}
+        </div>
       </div>
     );
   }
