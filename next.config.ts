@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   images: {
-    domains: ['your-project.supabase.co'],
+    domains: ['https://cunbadlwzavpnzlnjmlj.supabase.co'],
     remotePatterns: [
       {
         protocol: 'https',
@@ -13,9 +13,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  experimental: {
-    serverComponentsExternalPackages: ['mongoose'],
-  },
+  serverExternalPackages: ['mongoose'],
 };
 
 export default nextConfig;
