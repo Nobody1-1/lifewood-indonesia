@@ -12,8 +12,9 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     async function fetchStats() {
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
       const [usersRes, productsRes, storesRes, chartRes] = await Promise.all([
-        fetch("/api/users", { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }),
+        fetch("/api/users", { headers: { Authorization: `Bearer ${token}` } }),
         fetch("/api/products"),
         fetch("/api/stores"),
         fetch("/api/products"),
@@ -45,6 +46,8 @@ export default function AdminDashboard() {
       icon: <FaStore size={32} />, label: "Toko", value: stats.stores, gradient: "from-green-500 to-lime-400",
     },
   ];
+
+  const isDarkMode = typeof window !== "undefined" && document.documentElement.classList.contains("dark");
 
   return (
     <div className="p-2 md:p-8">
@@ -86,7 +89,7 @@ export default function AdminDashboard() {
                 yaxis: { title: { text: "Jumlah Produk" } },
                 fill: { opacity: 0.9 },
                 tooltip: { y: { formatter: (val: number) => `${val} Produk` } },
-                theme: { mode: document.documentElement.classList.contains("dark") ? "dark" : "light" },
+                theme: { mode: isDarkMode ? "dark" : "light" },
               }}
             />
           )}
@@ -103,8 +106,8 @@ export default function AdminDashboard() {
               options={{
                 labels: chartData.map(d => d.category),
                 colors: ["#ff4560", "#775dd0", "#00e396", "#008ffb", "#feb019"],
-                legend: { position: "bottom", labels: { colors: document.documentElement.classList.contains("dark") ? ["#fff"] : ["#333"] } },
-                theme: { mode: document.documentElement.classList.contains("dark") ? "dark" : "light" },
+                legend: { position: "bottom", labels: { colors: isDarkMode ? ["#fff"] : ["#333"] } },
+                theme: { mode: isDarkMode ? "dark" : "light" },
               }}
             />
           )}

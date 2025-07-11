@@ -1,9 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FaPlus, FaEdit, FaTrash, FaSearch } from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrash, FaSearch, FaBoxOpen } from "react-icons/fa";
 
-export default function AdminProductList() {
+export default function ProductsPage() {
   const router = useRouter();
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -11,27 +12,31 @@ export default function AdminProductList() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/auth/login");
-      return;
+    async function fetchProducts() {
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      if (!token) {
+        router.push("/auth/login");
+        return;
+      }
+      try {
+        const res = await fetch("/api/products", { headers: { Authorization: `Bearer ${token}` } });
+        const data = await res.json();
+        setProducts(data);
+      } catch (err) {
+        setError("Gagal mengambil data produk");
+      } finally {
+        setLoading(false);
+      }
     }
-    fetch("/api/products")
-      .then(res => res.json())
-      .then(data => setProducts(data))
-      .catch(() => setError("Gagal mengambil data produk"))
-      .finally(() => setLoading(false));
+    fetchProducts();
   }, [router]);
 
   const handleDelete = async (id: string) => {
     if (!confirm("Yakin ingin menghapus produk ini?")) return;
-    const token = localStorage.getItem("token");
-    const res = await fetch(`/api/products/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const res = await fetch(`/api/products/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
     if (res.ok) {
-      setProducts(products.filter(p => p._id !== id));
+      setProducts(products.filter((p: any) => p._id !== id));
     } else {
       alert("Gagal menghapus produk");
     }

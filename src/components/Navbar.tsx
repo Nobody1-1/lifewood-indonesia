@@ -26,7 +26,9 @@ export default function Navbar() {
           setUserData(payload);
           setIsLoggedIn(true);
         } catch {
-          localStorage.removeItem("token");
+          if (typeof window !== "undefined") {
+            localStorage.removeItem("token");
+          }
           setIsLoggedIn(false);
         }
       }

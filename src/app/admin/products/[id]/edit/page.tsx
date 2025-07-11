@@ -20,7 +20,7 @@ export default function EditProduct() {
   const [imageUrl, setImageUrl] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
     if (!token) {
       router.push("/auth/login");
       return;
@@ -42,7 +42,7 @@ export default function EditProduct() {
     e.preventDefault();
     setSaving(true);
     setError("");
-    const token = localStorage.getItem("token");
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
     if (!token) {
       router.push("/auth/login");
       return;

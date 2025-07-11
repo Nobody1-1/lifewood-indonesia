@@ -120,7 +120,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Tombol Logout */}
         <button
           onClick={() => {
-            localStorage.removeItem("token");
+            if (typeof window !== "undefined") {
+              localStorage.removeItem("token");
+            }
             router.replace("/");
           }}
           className="mt-4 px-3 py-2 rounded bg-red-500 text-white font-semibold hover:bg-red-600 transition"

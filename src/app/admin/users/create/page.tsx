@@ -2,38 +2,33 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function CreateUser() {
+export default function CreateUserPage() {
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [role, setRole] = useState("user");
-  const [error, setError] = useState("");
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "user",
+  });
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/auth/login");
-      return;
-    }
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
     try {
       const res = await fetch("/api/users", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ name, email, password, role }),
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(formData),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Gagal menambah user");
-      router.push("/admin/users");
-    } catch (err: any) {
-      setError(err.message);
+      if (res.ok) {
+        router.push("/admin/users");
+      } else {
+        alert("Gagal membuat user");
+      }
+    } catch (err) {
+      alert("Error: " + err);
     } finally {
       setLoading(false);
     }
@@ -42,23 +37,23 @@ export default function CreateUser() {
   return (
     <div className="p-8 max-w-xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Tambah User</h1>
-      {error && <div className="mb-4 text-red-500">{error}</div>}
+      {/* error && <div className="mb-4 text-red-500">{error}</div> */}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block font-medium">Nama</label>
-          <input type="text" className="w-full border rounded p-2" value={name} onChange={e => setName(e.target.value)} required />
+          <input type="text" className="w-full border rounded p-2" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
         </div>
         <div>
           <label className="block font-medium">Email</label>
-          <input type="email" className="w-full border rounded p-2" value={email} onChange={e => setEmail(e.target.value)} required />
+          <input type="email" className="w-full border rounded p-2" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} required />
         </div>
         <div>
           <label className="block font-medium">Password</label>
-          <input type="password" className="w-full border rounded p-2" value={password} onChange={e => setPassword(e.target.value)} required />
+          <input type="password" className="w-full border rounded p-2" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} required />
         </div>
         <div>
           <label className="block font-medium">Role</label>
-          <select className="w-full border rounded p-2" value={role} onChange={e => setRole(e.target.value)} required>
+          <select className="w-full border rounded p-2" value={formData.role} onChange={e => setFormData({ ...formData, role: e.target.value })} required>
             <option value="user">User</option>
             <option value="admin">Admin</option>
           </select>

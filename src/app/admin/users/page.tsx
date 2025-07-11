@@ -1,9 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FaPlus, FaEdit, FaTrash, FaSearch, FaUserShield, FaUser } from "react-icons/fa";
 
-export default function AdminUserList() {
+export default function UsersPage() {
   const router = useRouter();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -11,27 +12,31 @@ export default function AdminUserList() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/auth/login");
-      return;
+    async function fetchUsers() {
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      if (!token) {
+        router.push("/auth/login");
+        return;
+      }
+      try {
+        const res = await fetch("/api/users", { headers: { Authorization: `Bearer ${token}` } });
+        const data = await res.json();
+        setUsers(data);
+      } catch (err) {
+        setError("Gagal mengambil data user");
+      } finally {
+        setLoading(false);
+      }
     }
-    fetch("/api/users", { headers: { Authorization: `Bearer ${token}` } })
-      .then(res => res.json())
-      .then(data => setUsers(data))
-      .catch(() => setError("Gagal mengambil data user"))
-      .finally(() => setLoading(false));
+    fetchUsers();
   }, [router]);
 
   const handleDelete = async (id: string) => {
     if (!confirm("Yakin ingin menghapus user ini?")) return;
-    const token = localStorage.getItem("token");
-    const res = await fetch(`/api/users/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const res = await fetch(`/api/users/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
     if (res.ok) {
-      setUsers(users.filter(u => u._id !== id));
+      setUsers(users.filter((u: any) => u._id !== id));
     } else {
       alert("Gagal menghapus user");
     }
