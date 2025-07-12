@@ -19,22 +19,72 @@ function verifyAdmin(req: NextRequest) {
 }
 
 export async function GET() {
-  await dbConnect();
-  const stores = await Store.find().sort({ createdAt: -1 });
-  return NextResponse.json(stores);
+  try {
+    console.log('Connecting to database...');
+    await dbConnect();
+    console.log('Database connected successfully');
+    
+    console.log('Fetching stores from database...');
+    const stores = await Store.find().sort({ createdAt: -1 });
+    console.log(`Found ${stores.length} stores`);
+    
+    return NextResponse.json(stores, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    });
+  } catch (error) {
+    console.error('Error in GET /api/stores:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch stores', details: error instanceof Error ? error.message : 'Unknown error' },
+      { 
+        status: 500,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
+      }
+    );
+  }
 }
 
 export async function POST(req: NextRequest) {
-  const admin = verifyAdmin(req);
-  if (!admin) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  try {
+    const admin = verifyAdmin(req);
+    if (!admin) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+    
+    await dbConnect();
+    const { name, address, city, phone, location, image } = await req.json();
+    
+    if (!name || !address || !city || !phone || !location || location.lat === undefined || location.lng === undefined) {
+      return NextResponse.json({ message: 'Semua field wajib diisi.' }, { status: 400 });
+    }
+    
+    const store = new Store({ name, address, city, phone, location, image });
+    await store.save();
+    
+    return NextResponse.json({ message: 'Toko berhasil ditambahkan.', store }, { status: 201 });
+  } catch (error) {
+    console.error('Error in POST /api/stores:', error);
+    return NextResponse.json(
+      { error: 'Failed to create store', details: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    );
   }
-  await dbConnect();
-  const { name, address, city, phone, location, image } = await req.json();
-  if (!name || !address || !city || !phone || !location || location.lat === undefined || location.lng === undefined) {
-    return NextResponse.json({ message: 'Semua field wajib diisi.' }, { status: 400 });
-  }
-  const store = new Store({ name, address, city, phone, location, image });
-  await store.save();
-  return NextResponse.json({ message: 'Toko berhasil ditambahkan.', store }, { status: 201 });
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  });
 } 
